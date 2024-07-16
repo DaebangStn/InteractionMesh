@@ -1,12 +1,5 @@
 # Access SMPL models.
 smplx_models: "/home/geon/PycharmProjects/aitviewer/data/smplx_models"
-star_models: "../data/star_models"
-supr_models: "../data/supr_models"
-
-# Access to datasets.
-datasets:
-  amass:
-    "/home/geon/PycharmProjects/aitviewer/data/amass"
 
 # Pytorch configuration.
 device: "cuda:0"
@@ -37,8 +30,4 @@ background_color: [1.0, 1.0, 1.0, 1.0]
 window_type: "pyqt5"
 
 # Viewer defaults to Y up, set to true for Z up.
-z_up: False
-
-# Server for remote connections.
-server_enabled: False
-server_port: 8417
+z_up: True

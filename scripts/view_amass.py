@@ -16,7 +16,7 @@ if __name__ == "__main__":
     seq_amass = SMPLSequence.from_amass(
         npz_data_path=arg.npz,
         fps_out=60.0,
-        color=MODEL_COLOR,
+        color=MESH_COLOR,
         name=f"AMASS {filename}",
         show_joint_angles=True,
     )

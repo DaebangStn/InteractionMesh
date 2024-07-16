@@ -11,10 +11,11 @@ setup(
         "gitpython",
         "numpy==1.23.1",
         "matplotlib",
-        "aitviewer",
         "argparse",
+        "aitviewer @ git+https://github.com/DaebangStn/aitviewer.git@main",
     ],
     packages=find_packages(include=["im*"], exclude=["res", "scripts", ]),
+    python_requires=">=3.10",
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3",
