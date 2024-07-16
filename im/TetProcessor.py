@@ -29,6 +29,7 @@ class TetProcessor:
         simplices = self._compute_delaunay()
         tet_indices = self._concat_tet_indices(simplices)
         adj_list = self._build_adjacency_list(tet_indices, self._jnum)
+        self._compute_laplacian(adj_list)
 
         return self._convert_tet_edge_coord(tet_indices)
 
@@ -45,6 +46,22 @@ class TetProcessor:
         print(f"[Compute] {num_frames} tet took {time() - start:.2f} seconds.")
 
         return simplices
+
+    def _compute_laplacian(self, adj_list: List[List[Set[int]]]) -> np.ndarray:
+        """
+        :param adj_list: refer to _build_adjacency_list
+        :return: (f, n, 3) np.ndarray, the laplacian coordinates of the vertices.
+            If the vertices have no neighbor, remain the coordinate to be -1.
+        """
+        laplacian_coord = np.full_like(self._jpos, -1)
+        for f, frame_adj_list in enumerate(adj_list):
+            for i in range(self._jnum):
+                neighbor_idx = list(frame_adj_list[i])
+                if len(neighbor_idx) == 0:
+                    continue
+                centroid = np.mean(self._jpos[f, neighbor_idx], axis=0)
+                laplacian_coord[f, i] = self._jpos[f, i] - centroid
+        return laplacian_coord
 
     def _convert_tet_edge_coord(self, tet_indices: np.ndarray) -> np.ndarray:
         """
