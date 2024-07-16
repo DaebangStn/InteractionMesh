@@ -17,6 +17,7 @@ class TetProcessor:
         assert p1_jpos.shape[0] == p2_jpos.shape[0], "The number of frame should be the same."
         zeros = np.zeros((p1_jpos.shape[0], 1, 3))
         self._jpos = np.concatenate((p1_jpos, p2_jpos, zeros), axis=1)
+        self._jnum = self._jpos.shape[1] - 1
 
         self._whitelist = None
         if kwargs.get("use_whitelist_filter", True):
@@ -27,6 +28,8 @@ class TetProcessor:
     def compute(self) -> np.ndarray:
         simplices = self._compute_delaunay()
         tet_indices = self._concat_tet_indices(simplices)
+        adj_list = self._build_adjacency_list(tet_indices, self._jnum)
+
         return self._convert_tet_edge_coord(tet_indices)
 
     def _compute_delaunay(self) -> List[np.ndarray]:
@@ -38,7 +41,7 @@ class TetProcessor:
 
         start = time()
         with mp.Pool(mp.cpu_count()) as pool:
-            simplices = pool.map(self._run_delaunay, [self._jpos[frame] for frame in range(num_frames)])
+            simplices = pool.map(self._run_delaunay, [self._jpos[frame, :-1] for frame in range(num_frames)])
         print(f"[Compute] {num_frames} tet took {time() - start:.2f} seconds.")
 
         return simplices
@@ -75,7 +78,7 @@ class TetProcessor:
 
         line_shape = list(all_start_coords.shape)
         line_shape[1] *= 2
-        line_pos = np.zeros(line_shape)
+        line_pos = np.full(line_shape, -1, dtype=all_start_coords.dtype)
         line_pos[:, ::2, :] = all_start_coords
         line_pos[:, 1::2, :] = all_end_coords
         return line_pos
@@ -87,6 +90,7 @@ class TetProcessor:
         :return:
         """
         whitelist = [
+            # 0
             0, 22,  # root
             15, 37,  # head
             20, 21, 42, 43,  # wrist
@@ -122,6 +126,29 @@ class TetProcessor:
         return np.array(tetrahedral)
 
     @staticmethod
+    def _build_adjacency_list(tet_indices: np.ndarray, num_vertices: int) -> List[List[Set[int]]]:
+        """
+        :param tet_indices: (f, n, 4) np.ndarray, the indices of the vertices of the tetrahedral.
+        :param num_vertices: int, the number of vertices.
+        :return: List of List of Set, the adjacency list of the vertices.
+            First index is the frame index.
+            Second index is the vertex index.
+            Element is the set of the index of adjacent vertices.
+        """
+        adj_list = []
+        for f in range(tet_indices.shape[0]):
+            frame_adj_list = [set() for _ in range(num_vertices)]
+            for tet in tet_indices[f]:
+                if tet[0] == -1:
+                    continue
+                for i in range(4):
+                    for j in range(i + 1, 4):
+                        frame_adj_list[tet[i]].add(tet[j])
+                        frame_adj_list[tet[j]].add(tet[i])
+            adj_list.append(frame_adj_list)
+        return adj_list
+
+    @staticmethod
     def _concat_tet_indices(simplices: List[np.ndarray]) -> np.ndarray:
         """
         1. Pad the tetrahedral indices to make them have the same length.
@@ -131,8 +158,10 @@ class TetProcessor:
         """
         max_len = max([len(tet) for tet in simplices])
         for i, tet in enumerate(simplices):
-            if len(tet) < max_len:
-                pad = np.full((max_len - len(tet), 4), -1)
+            pad = np.full((max_len - len(tet), 4), -1)
+            if len(tet) == 0:
+                simplices[i] = pad
+            elif len(tet) < max_len:
                 simplices[i] = np.concatenate((tet, pad), axis=0)
 
         return np.stack(simplices, axis=0)

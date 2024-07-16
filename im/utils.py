@@ -1,7 +1,7 @@
 from time import time
 import os.path as osp
 import multiprocessing as mp
-from typing import List, Dict, Optional, Any, Tuple
+from typing import List, Dict, Optional, Any, Tuple, Set
 
 import numpy as np
 from scipy.spatial import Delaunay

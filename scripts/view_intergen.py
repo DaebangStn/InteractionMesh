@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     # lining by tetrahedralization edge
     proc = TetProcessor(seq1.joints, seq2.joints)
-    line_renderable = Lines(proc.compute(), color=LINE_COLOR, r_base=0.004)
+    line_renderable = Lines(proc.compute(), color=LINE_COLOR, r_base=0.004, mode='lines')
 
     # lining correspond joints
     # line_shape = list(seq1.joints.shape)
