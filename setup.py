@@ -12,6 +12,8 @@ setup(
         "numpy==1.23.1",
         "matplotlib",
         "argparse",
+        "scipy",
+        "pyvista",
         "aitviewer @ git+https://github.com/DaebangStn/aitviewer.git@main",
     ],
     packages=find_packages(include=["im*"], exclude=["res", "scripts", ]),

@@ -1,3 +1,4 @@
+from im.TetProcessor import TetProcessor
 from im.utils import *
 
 
@@ -21,13 +22,21 @@ if __name__ == "__main__":
         show_joint_angles=True,
     )
 
-    line_shape = list(seq1.joints.shape)
-    line_shape[1] *= 2
-    line_pos = np.zeros(line_shape)
-    line_pos[:, ::2, :] = seq1.joints
-    line_pos[:, 1::2, :] = seq2.joints
-    line_pos_z_up = line_pos[:, :, [0, 2, 1]]
-    line_renderable = Lines(line_pos, color=LINE_COLOR, r_base=0.004)
+    # joint_pos = np.concatenate((seq1.joints[0], seq2.joints[0]), axis=0)
+    # print(f'shape of joint_pos: {joint_pos.shape}')
+    # np.save("res/inter_jpos.npy", joint_pos)
+
+    # lining by tetrahedralization edge
+    proc = TetProcessor(seq1.joints, seq2.joints)
+    line_renderable = Lines(proc.compute(), color=LINE_COLOR, r_base=0.004)
+
+    # lining correspond joints
+    # line_shape = list(seq1.joints.shape)
+    # line_shape[1] *= 2
+    # line_pos = np.zeros(line_shape)
+    # line_pos[:, ::2, :] = seq1.joints
+    # line_pos[:, 1::2, :] = seq2.joints
+    # line_renderable = Lines(line_pos, color=LINE_COLOR, r_base=0.004)
 
     # Display in the viewer.
     v = Viewer()
